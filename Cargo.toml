@@ -1,7 +1,13 @@
 [package]
 name = "comet-eventbus"
+authors = ["Akase Cho <light.tsing@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+keywords = ["async", "library", "concurrency", "channel"]
+description = "An implementation of strong-typed sync and asynchronous eventbus."
+categories = ["asynchronous", "concurrency"]
 
 [dependencies]
 anymap = "0.12"
