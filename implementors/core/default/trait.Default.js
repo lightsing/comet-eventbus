@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["comet_eventbus"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.62.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"comet_eventbus/struct.Eventbus.html\" title=\"struct comet_eventbus::Eventbus\">Eventbus</a>","synthetic":false,"types":["comet_eventbus::Eventbus"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
