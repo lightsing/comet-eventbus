@@ -19,6 +19,12 @@ use std::hash::{Hash, Hasher};
 use std::str::Utf8Error;
 use std::sync::Arc;
 
+#[cfg(not(any(feature = "async", feature = "sync")))]
+compile_error!("Either `async` or `sync` feature must be enabled");
+
+#[cfg(all(feature = "async", feature = "sync"))]
+compile_error!("The `async` and `sync` features cannot be enabled simultaneously");
+
 #[cfg(feature = "async")]
 mod impl_async;
 #[cfg(feature = "sync")]
