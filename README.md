@@ -1,7 +1,9 @@
 # comet-eventbus
 
 [![License](https://img.shields.io/badge/license-MIT_OR_Apache--2.0-blue.svg)](
-https://github.com/crossbeam-rs/crossbeam#license)
+https://github.com/lightsing/comet-eventbus#license)
+[![Documentation](https://img.shields.io/badge/docs-latest-green)](
+https://lightsing.github.io/comet-eventbus/comet_eventbus/index.html)
 
 A strong typed sync and asynchronous eventbus implementation.
 
