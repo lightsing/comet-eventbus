@@ -1,0 +1,46 @@
+name: Lints
+
+# We only run these lints on trial-merges of PRs to reduce noise.
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, ready_for_review]
+  push:
+    branches:
+      - main
+
+jobs:
+  clippy:
+    if: github.event.pull_request.draft == false
+
+    name: Clippy
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          components: clippy
+          override: false
+      - name: Cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run clippy for async
+        uses: actions-rs/clippy-check@v1
+        with:
+          name: Clippy
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --features async --no-default-features --all-targets -- -D warnings
+      - name: Run clippy for sync
+        uses: actions-rs/clippy-check@v1
+        with:
+          name: Clippy
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --features sync,sync_parallel --no-default-features --all-targets -- -D warnings
