@@ -3,24 +3,32 @@
 //! This crate provides a strong-typed asynchronous eventbus implementation.
 
 #![deny(missing_docs)]
+#![warn(
+    missing_debug_implementations,
+    single_use_lifetimes,
+    unreachable_pub,
+    future_incompatible,
+    rust_2021_compatibility,
+)]
 
 use anymap::AnyMap;
 use async_trait::async_trait;
 use futures::future;
 use rand::{thread_rng, RngCore};
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// An asynchronous `Eventbus` to interact with
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Eventbus {
     inner: Arc<EventbusInner>,
 }
 
 /// Wrapper of bytes represent a `Topic`
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct TopicKey(Vec<u8>);
 
 /// short hand of event listeners set
@@ -38,6 +46,7 @@ pub trait Listener<T>: Send + Sync + 'static {
 }
 
 /// A `Topic` wrapper for a `TopicKey`
+#[derive(Debug)]
 pub struct Topic<T> {
     key: TopicKey,
     bus: Eventbus,
@@ -50,6 +59,7 @@ pub struct Event<T> {
     message: T,
 }
 
+#[derive(Debug)]
 struct EventbusInner {
     topic_handlers: Arc<TopicHandlers>,
 }
@@ -61,6 +71,7 @@ pub struct EventListener<T> {
     handler: Box<dyn Listener<T>>,
 }
 
+#[derive(Debug)]
 struct TopicHandlers {
     inner: Mutex<AnyMap>,
 }
@@ -155,12 +166,18 @@ impl<T> EventListener<T> {
     }
 }
 
-impl<T: Clone> Clone for Event<T> {
-    fn clone(&self) -> Self {
-        Self {
-            topic: self.topic.clone(),
-            message: self.message.clone(),
-        }
+impl Display for TopicKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", hex::encode(&self.0))
+    }
+}
+
+impl Debug for TopicKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_tuple("TopicKey")
+            .field(&hex::encode(&self.0))
+            .finish()
     }
 }
 
@@ -170,6 +187,25 @@ impl<B> From<B> for TopicKey
 {
     fn from(value: B) -> Self {
         Self(value.as_ref().to_vec())
+    }
+}
+
+impl <T: Debug> Debug for Event<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct(&format!("Event<{}>", std::any::type_name::<T>()).as_str())
+            .field("topic", &self.topic)
+            .field("message", &self.message)
+            .finish()
+    }
+}
+
+impl<T: Clone> Clone for Event<T> {
+    fn clone(&self) -> Self {
+        Self {
+            topic: self.topic.clone(),
+            message: self.message.clone(),
+        }
     }
 }
 
@@ -185,5 +221,15 @@ impl<T> Hash for EventListener<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.topic.hash(state);
         state.write_u64(self.rand_id);
+    }
+}
+
+impl<T> Debug for EventListener<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct(&format!("EventListener<{}>", std::any::type_name::<T>()).as_str())
+            .field("topic", &self.topic)
+            .field("rand_id", &self.rand_id)
+            .finish()
     }
 }
