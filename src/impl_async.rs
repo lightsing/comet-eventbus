@@ -28,8 +28,16 @@ impl Eventbus {
     }
 
     /// register a listener to eventbus
-    pub async fn register<T: 'static>(&self, listener: EventListener<T>) {
-        self.inner.topic_handlers.add_listener(listener).await;
+    pub async fn register<T: 'static, K: Into<TopicKey>, L: Listener<T>>(&self, topic_key: K, listener: L) -> EventListener<T> {
+        let topic_key = topic_key.into();
+        let event_listener = EventListener::<T>::new(topic_key.clone(), self.clone());
+        self.inner.topic_handlers.add_listener(event_listener.rand_id, topic_key, listener).await;
+        event_listener
+    }
+
+    /// unregister an event listener
+    pub async fn unregister<T: 'static>(&self, event_listener: EventListener<T>) {
+        self.inner.topic_handlers.remove_listener::<T, _>(event_listener.rand_id, event_listener.topic).await;
     }
 
     /// post an event to eventbus
@@ -38,10 +46,22 @@ impl Eventbus {
     }
 }
 
+impl<T: 'static> EventListener<T> {
+    /// shorthand for unregister listener from eventbus
+    pub async fn unregister(self) {
+        self.bus.clone().unregister(self).await
+    }
+}
+
 impl TopicHandlers {
-    async fn add_listener<T: 'static>(&self, listener: EventListener<T>) {
-        let listeners = self.get_listener(listener.topic.clone()).await;
-        listeners.lock().await.insert(listener);
+    async fn add_listener<T: 'static, K: Into<TopicKey>, L: Listener<T>>(&self, rand_id: u64, topic_key: K, listener: L) {
+        let listeners = self.get_listener::<T, K>(topic_key).await;
+        listeners.lock().await.insert(rand_id, Box::new(listener));
+    }
+
+    async fn remove_listener<T: 'static, K: Into<TopicKey>>(&self, rand_id: u64, topic_key: K) {
+        let listeners = self.get_listener::<T, K>(topic_key).await;
+        listeners.lock().await.remove(&rand_id);
     }
 
     async fn get_listener<T: 'static, K: Into<TopicKey>>(&self, topic_key: K) -> EventListeners<T> {
@@ -62,7 +82,7 @@ impl TopicHandlers {
     async fn notify<T: Send + Sync + 'static>(&self, event: &Event<T>) {
         let listeners = self.get_listener::<T, _>(event.topic.clone()).await;
         let guard = listeners.lock().await;
-        future::join_all(guard.iter().map(|listener| listener.handler.handle(event))).await;
+        future::join_all(guard.iter().map(|(_, listener)| listener.handle(event))).await;
     }
 }
 

@@ -26,9 +26,18 @@ impl Eventbus {
     }
 
     /// register a listener to eventbus
-    pub fn register<T: 'static>(&self, listener: EventListener<T>) {
-        self.inner.topic_handlers.add_listener(listener);
+    pub fn register<T: 'static, K: Into<TopicKey>, L: Listener<T>>(&self, topic_key: K, listener: L) -> EventListener<T> {
+        let topic_key = topic_key.into();
+        let event_listener = EventListener::<T>::new(topic_key.clone(), self.clone());
+        self.inner.topic_handlers.add_listener(event_listener.rand_id, topic_key, listener);
+        event_listener
     }
+
+    /// unregister an event listener
+    pub fn unregister<T: 'static>(&self, event_listener: EventListener<T>) {
+        self.inner.topic_handlers.remove_listener::<T, _>(event_listener.rand_id, event_listener.topic);
+    }
+
 
     /// post an event to eventbus
     pub fn post<T: Sync + 'static>(&self, event: &Event<T>) {
@@ -36,10 +45,22 @@ impl Eventbus {
     }
 }
 
+impl<T: 'static> EventListener<T> {
+    /// shorthand for unregister listener from eventbus
+    pub fn unregister(self) {
+        self.bus.clone().unregister(self)
+    }
+}
+
 impl TopicHandlers {
-    fn add_listener<T: 'static>(&self, listener: EventListener<T>) {
-        let listeners = self.get_listener(listener.topic.clone());
-        listeners.lock().insert(listener);
+    fn add_listener<T: 'static, K: Into<TopicKey>, L: Listener<T>>(&self, rand_id: u64, topic_key: K, listener: L) {
+        let listeners = self.get_listener::<T, K>(topic_key);
+        listeners.lock().insert(rand_id, Box::new(listener));
+    }
+
+    fn remove_listener<T:'static, K: Into<TopicKey>>(&self, rand_id: u64, topic_key: K) {
+        let listeners = self.get_listener::<T, K>(topic_key);
+        listeners.lock().remove(&rand_id);
     }
 
     fn get_listener<T: 'static, K: Into<TopicKey>>(&self, topic_key: K) -> EventListeners<T> {
@@ -62,10 +83,10 @@ impl TopicHandlers {
         let guard = listeners.lock();
 
         #[cfg(not(feature = "sync_parallel"))]
-        guard.iter().for_each(|listener| listener.handler.handle(event));
+        guard.iter().for_each(|(_, listener)| listener.handle(event));
 
         #[cfg(feature = "sync_parallel")]
-        guard.par_iter().for_each(|listener| listener.handler.handle(event));
+        guard.par_iter().for_each(|(_, listener)| listener.handle(event));
     }
 }
 

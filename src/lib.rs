@@ -13,9 +13,10 @@
 
 use anymap::AnyMap;
 use rand::{thread_rng, RngCore};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
+use std::marker::PhantomData;
 use std::str::Utf8Error;
 use std::sync::Arc;
 
@@ -53,12 +54,11 @@ pub struct Eventbus {
 pub struct TopicKey(Vec<u8>);
 
 /// short hand of event listeners set
-pub type EventListeners<T> = Arc<Mutex<HashSet<EventListener<T>>>>;
+pub type EventListeners<T> = Arc<Mutex<HashMap<u64, Box<dyn Listener<T>>>>>;
 /// short hand of topic to handlers map
 pub type TopicHandlersMap<T> = Arc<Mutex<HashMap<TopicKey, EventListeners<T>>>>;
 
 /// A `Topic` wrapper for a `TopicKey`
-#[derive(Debug)]
 pub struct Topic<T> {
     key: TopicKey,
     bus: Eventbus,
@@ -80,7 +80,8 @@ struct EventbusInner {
 pub struct EventListener<T> {
     topic: TopicKey,
     rand_id: u64,
-    handler: Box<dyn Listener<T>>,
+    bus: Eventbus,
+    _handler: PhantomData<T>
 }
 
 #[derive(Debug)]
@@ -140,13 +141,23 @@ impl<T> Topic<T> {
     }
 }
 
+impl<T> Debug for Topic<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct(format!("Topic<{}>", std::any::type_name::<T>()).as_str())
+            .field("key", &self.key)
+            .field("bus", &self.bus)
+            .finish()
+    }
+}
+
 impl<T> EventListener<T> {
-    /// create a `EventListener` from a handler and a topic key
-    pub fn new<K: Into<TopicKey>, H: Listener<T>>(topic_key: K, handler: H) -> EventListener<T> {
+    fn new<K: Into<TopicKey>>(topic_key: K, bus: Eventbus) -> EventListener<T> {
         EventListener {
             topic: topic_key.into(),
             rand_id: thread_rng().next_u64(),
-            handler: Box::new(handler),
+            bus,
+            _handler: PhantomData,
         }
     }
 }
@@ -213,6 +224,17 @@ impl<T> Hash for EventListener<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.topic.hash(state);
         state.write_u64(self.rand_id);
+    }
+}
+
+impl<T> Clone for EventListener<T> {
+    fn clone(&self) -> Self {
+        Self {
+            topic: self.topic.clone(),
+            rand_id: self.rand_id,
+            bus: self.bus.clone(),
+            _handler: PhantomData
+        }
     }
 }
 
