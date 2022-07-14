@@ -18,8 +18,12 @@ use rand::{thread_rng, RngCore};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
+use std::str::Utf8Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+
+#[cfg(test)]
+mod tests;
 
 /// An asynchronous `Eventbus` to interact with
 #[derive(Debug, Clone)]
@@ -77,6 +81,15 @@ struct TopicHandlers {
 }
 
 impl Eventbus {
+    /// create an new eventbus
+    pub fn new() -> Self {
+        Self {
+            inner: Arc::new(EventbusInner {
+                topic_handlers: Arc::new(TopicHandlers::new())
+            })
+        }
+    }
+
     /// create a `Topic` using a topic key
     pub async fn create_topic<T: 'static, K: Into<TopicKey>>(&self, topic_key: K) -> Topic<T> {
         let topic_key = topic_key.into();
@@ -104,6 +117,12 @@ impl Eventbus {
 }
 
 impl TopicHandlers {
+    fn new() -> Self {
+        Self {
+            inner: Mutex::new(AnyMap::new())
+        }
+    }
+
     async fn add_listener<T: 'static>(&self, listener: EventListener<T>) {
         let listeners = self.get_listener(listener.topic.clone()).await;
         listeners.lock().await.insert(listener);
@@ -128,6 +147,16 @@ impl TopicHandlers {
         let listeners = self.get_listener::<T, _>(event.topic.clone()).await;
         let guard = listeners.lock().await;
         future::join_all(guard.iter().map(|listener| listener.handler.handle(&event))).await;
+    }
+}
+
+impl<T> Event<T> {
+    /// create an new event
+    pub fn new<K: Into<TopicKey>>(topic_key: K, message: T) -> Self {
+        Self {
+            topic: topic_key.into(),
+            message
+        }
     }
 }
 
@@ -166,9 +195,16 @@ impl<T> EventListener<T> {
     }
 }
 
+impl TopicKey {
+    /// try parse topic key as an utf-8 str
+    pub fn try_as_str(&self) -> Result<&str, Utf8Error> {
+        std::str::from_utf8(&self.0)
+    }
+}
+
 impl Display for TopicKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", hex::encode(&self.0))
+        write!(f, "{}", &self.try_as_str().unwrap_or(&hex::encode(&self.0)))
     }
 }
 
@@ -176,7 +212,7 @@ impl Debug for TopicKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f
             .debug_tuple("TopicKey")
-            .field(&hex::encode(&self.0))
+            .field(&self.try_as_str().unwrap_or(&hex::encode(&self.0)))
             .finish()
     }
 }
