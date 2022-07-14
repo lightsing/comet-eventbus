@@ -1,0 +1,11 @@
+[package]
+name = "comet-eventbus"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anymap = "0.12.1"
+async-trait = "0.1.56"
+futures = "0.3.21"
+rand = "0.8.5"
+tokio = { version = "1.20.0", default-features = false ,features = ["rt", "sync"] }
