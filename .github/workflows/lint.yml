@@ -37,7 +37,7 @@ jobs:
         with:
           name: Clippy
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features async --no-default-features --all-targets -- -D warnings
+          args: --features async,bridge --no-default-features --all-targets -- -D warnings
       - name: Run clippy for sync
         uses: actions-rs/clippy-check@v1
         with:

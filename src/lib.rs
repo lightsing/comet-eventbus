@@ -8,10 +8,12 @@
     single_use_lifetimes,
     unreachable_pub,
     future_incompatible,
-    rust_2021_compatibility,
+    rust_2021_compatibility
 )]
 
-use anymap::AnyMap;
+#[macro_use]
+extern crate log;
+
 use rand::{thread_rng, RngCore};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
@@ -27,6 +29,12 @@ compile_error!("Either `async` or `sync` feature must be enabled");
 compile_error!("The `async` and `sync` features cannot be enabled simultaneously");
 
 #[cfg(feature = "async")]
+pub use async_trait::async_trait;
+
+/// bridge `Eventbus` from an external source
+#[cfg(feature = "bridge")]
+pub mod bridge;
+#[cfg(feature = "async")]
 mod impl_async;
 #[cfg(feature = "sync")]
 mod impl_sync;
@@ -38,10 +46,10 @@ use impl_async::Listener;
 #[cfg(feature = "sync")]
 use impl_sync::Listener;
 
-#[cfg(feature = "async")]
-use tokio::sync::Mutex;
 #[cfg(feature = "sync")]
 use parking_lot::Mutex;
+#[cfg(feature = "async")]
+use tokio::sync::Mutex;
 
 /// An asynchronous `Eventbus` to interact with
 #[derive(Debug, Clone)]
@@ -81,12 +89,12 @@ pub struct EventListener<T> {
     topic: TopicKey,
     rand_id: u64,
     bus: Eventbus,
-    _handler: PhantomData<T>
+    _handler: PhantomData<T>,
 }
 
 #[derive(Debug)]
 struct TopicHandlers {
-    inner: Mutex<AnyMap>,
+    inner: Mutex<anymap::Map<dyn anymap::any::Any + Send + Sync>>,
 }
 
 impl Eventbus {
@@ -94,8 +102,8 @@ impl Eventbus {
     pub fn new() -> Self {
         Self {
             inner: Arc::new(EventbusInner {
-                topic_handlers: Arc::new(TopicHandlers::new())
-            })
+                topic_handlers: Arc::new(TopicHandlers::new()),
+            }),
         }
     }
 }
@@ -109,7 +117,7 @@ impl Default for Eventbus {
 impl TopicHandlers {
     fn new() -> Self {
         Self {
-            inner: Mutex::new(AnyMap::new())
+            inner: Mutex::new(anymap::Map::new()),
         }
     }
 }
@@ -119,7 +127,7 @@ impl<T> Event<T> {
     pub fn new<K: Into<TopicKey>>(topic_key: K, message: T) -> Self {
         Self {
             topic: topic_key.into(),
-            message
+            message,
         }
     }
 }
@@ -143,8 +151,7 @@ impl<T> Topic<T> {
 
 impl<T> Debug for Topic<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f
-            .debug_struct(format!("Topic<{}>", std::any::type_name::<T>()).as_str())
+        f.debug_struct(format!("Topic<{}>", std::any::type_name::<T>()).as_str())
             .field("key", &self.key)
             .field("bus", &self.bus)
             .finish()
@@ -177,26 +184,24 @@ impl Display for TopicKey {
 
 impl Debug for TopicKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f
-            .debug_tuple("TopicKey")
+        f.debug_tuple("TopicKey")
             .field(&self.try_as_str().unwrap_or(&hex::encode(&self.0)))
             .finish()
     }
 }
 
 impl<B> From<B> for TopicKey
-    where
-        B: AsRef<[u8]>,
+where
+    B: AsRef<[u8]>,
 {
     fn from(value: B) -> Self {
         Self(value.as_ref().to_vec())
     }
 }
 
-impl <T: Debug> Debug for Event<T> {
+impl<T: Debug> Debug for Event<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f
-            .debug_struct(format!("Event<{}>", std::any::type_name::<T>()).as_str())
+        f.debug_struct(format!("Event<{}>", std::any::type_name::<T>()).as_str())
             .field("topic", &self.topic)
             .field("message", &self.message)
             .finish()
@@ -233,15 +238,14 @@ impl<T> Clone for EventListener<T> {
             topic: self.topic.clone(),
             rand_id: self.rand_id,
             bus: self.bus.clone(),
-            _handler: PhantomData
+            _handler: PhantomData,
         }
     }
 }
 
 impl<T> Debug for EventListener<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f
-            .debug_struct(format!("EventListener<{}>", std::any::type_name::<T>()).as_str())
+        f.debug_struct(format!("EventListener<{}>", std::any::type_name::<T>()).as_str())
             .field("topic", &self.topic)
             .field("rand_id", &self.rand_id)
             .finish()

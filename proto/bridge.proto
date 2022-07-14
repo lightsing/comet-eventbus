@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package Bridge;
+
+service Bridger {
+  rpc Post (PostReq) returns (google.protobuf.Empty) {}
+}
+
+message PostReq {
+  bytes topic = 1;
+  bytes message = 2;
+}

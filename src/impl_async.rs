@@ -1,6 +1,9 @@
+use crate::{
+    Event, EventListener, EventListeners, Eventbus, Topic, TopicHandlers, TopicHandlersMap,
+    TopicKey,
+};
 use async_trait::async_trait;
 use futures::future;
-use crate::{Event, Eventbus, EventListener, EventListeners, Topic, TopicHandlers, TopicHandlersMap, TopicKey};
 
 /// Event listener
 ///
@@ -28,20 +31,32 @@ impl Eventbus {
     }
 
     /// register a listener to eventbus
-    pub async fn register<T: 'static, K: Into<TopicKey>, L: Listener<T>>(&self, topic_key: K, listener: L) -> EventListener<T> {
+    pub async fn register<T: 'static, K: Into<TopicKey>, L: Listener<T>>(
+        &self,
+        topic_key: K,
+        listener: L,
+    ) -> EventListener<T> {
         let topic_key = topic_key.into();
         let event_listener = EventListener::<T>::new(topic_key.clone(), self.clone());
-        self.inner.topic_handlers.add_listener(event_listener.rand_id, topic_key, listener).await;
+        trace!("add event_listener: {:?}", event_listener);
+        self.inner
+            .topic_handlers
+            .add_listener(event_listener.rand_id, topic_key, listener)
+            .await;
         event_listener
     }
 
     /// unregister an event listener
     pub async fn unregister<T: 'static>(&self, event_listener: EventListener<T>) {
-        self.inner.topic_handlers.remove_listener::<T, _>(event_listener.rand_id, event_listener.topic).await;
+        self.inner
+            .topic_handlers
+            .remove_listener::<T, _>(event_listener.rand_id, event_listener.topic)
+            .await;
     }
 
     /// post an event to eventbus
     pub async fn post<T: Send + Sync + 'static>(&self, event: &Event<T>) {
+        trace!("recv post [{:?}]", event.topic);
         self.inner.topic_handlers.notify(event).await;
     }
 }
@@ -54,7 +69,13 @@ impl<T: 'static> EventListener<T> {
 }
 
 impl TopicHandlers {
-    async fn add_listener<T: 'static, K: Into<TopicKey>, L: Listener<T>>(&self, rand_id: u64, topic_key: K, listener: L) {
+    async fn add_listener<T: 'static, K: Into<TopicKey>, L: Listener<T>>(
+        &self,
+        rand_id: u64,
+        topic_key: K,
+        listener: L,
+    ) {
+        trace!("add listener: rand_id={}", rand_id);
         let listeners = self.get_listener::<T, K>(topic_key).await;
         listeners.lock().await.insert(rand_id, Box::new(listener));
     }
@@ -76,13 +97,18 @@ impl TopicHandlers {
         let listeners = inner_guard
             .entry(topic_key)
             .or_insert_with(Default::default);
+        trace!("current listeners: {}", listeners.lock().await.len());
         listeners.clone()
     }
 
     async fn notify<T: Send + Sync + 'static>(&self, event: &Event<T>) {
         let listeners = self.get_listener::<T, _>(event.topic.clone()).await;
         let guard = listeners.lock().await;
-        future::join_all(guard.iter().map(|(_, listener)| listener.handle(event))).await;
+        future::join_all(guard.iter().map(|(_, listener)| {
+            trace!("notify listener for event [{:?}]", event.topic);
+            listener.handle(event)
+        }))
+        .await;
     }
 }
 

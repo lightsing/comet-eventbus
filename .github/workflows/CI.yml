@@ -39,7 +39,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose --release --all --features async --no-default-features
+          args: --verbose --release --all --features async,bridge --no-default-features
       - name: Run sync tests
         uses: actions-rs/cargo@v1
         with:
@@ -71,7 +71,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --features async --no-default-features
+          args: --features async,bridge --no-default-features
       - name: cargo check async
         uses: actions-rs/cargo@v1
         with:
