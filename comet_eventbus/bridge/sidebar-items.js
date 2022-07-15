@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BridgeListener","Bridge Serialized Event to an concreate typed Event"],["BridgedEventListener","An `EventListener` wrapper for `Listener`"],["BridgedTopic","A bridge `Topic`"],["EventbusBridge","A bridge to connect two seperated `Eventbus`"],["SerializedMessage","An serialized message"]]});
