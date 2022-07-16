@@ -1,7 +1,39 @@
 //! An universal eventbus for Rust!
 //!
 //! This crate provides a strong-typed asynchronous eventbus implementation.
-
+//!
+//! # Get Started
+//!
+//! comet-eventbus is async-first-classed. We recommend you to use async API.
+//!
+//! Add following code to your `Cargo.toml`:
+//! ```toml
+//! comet-eventbus = "0.1"
+//! ```
+//!
+//! ## Example
+//!
+//! ```
+//! use comet_eventbus::{Event, Eventbus};
+//!
+//! // define your message struct
+//! struct Message {
+//!     content: u8,
+//! }
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     // creat a new eventbus
+//!     let eventbus = Eventbus::new();
+//!
+//!     // create topic
+//!     let topic = eventbus.create_topic("my awsome topic").await;
+//!
+//!     // post message to a topic
+//!     topic.post_message(Message { content: 0 }).await;
+//! }
+//! ```
+//!
 #![deny(missing_docs)]
 #![warn(
     missing_debug_implementations,
@@ -156,6 +188,11 @@ impl<T> DerefMut for Event<T> {
 }
 
 impl<T> Topic<T> {
+    /// create an event from message
+    pub fn create_event(&self, message: T) -> Event<T> {
+        Event::new(self.key.clone(), message)
+    }
+
     /// get the key of a topic
     pub fn get_key(&self) -> &TopicKey {
         &self.key

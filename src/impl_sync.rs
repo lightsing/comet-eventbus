@@ -123,4 +123,11 @@ impl<T: Sync + 'static> Topic<T> {
     pub fn post(&self, event: &Event<T>) {
         self.bus.post(event);
     }
+
+    /// shorthand for post message to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
+    pub fn post_message(&self, message: T) {
+        let event = self.create_event(message);
+        self.post(&event);
+    }
 }

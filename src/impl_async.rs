@@ -124,4 +124,11 @@ impl<T: Send + Sync + 'static> Topic<T> {
     pub async fn post(&self, event: &Event<T>) {
         self.bus.post(event).await;
     }
+
+    /// shorthand for post message to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
+    pub async fn post_message(&self, message: T) {
+        let event = self.create_event(message);
+        self.post(&event).await;
+    }
 }
