@@ -44,3 +44,7 @@ async = ["futures", "tokio"]
 sync = ["parking_lot"]
 sync_parallel = ["sync", "rayon"]
 bridge = ["async", "bincode", "prost", "serde", "tonic", "tonic-build"]
+
+[package.metadata.docs.rs]
+features = ["async", "bridge"]
+rustdoc-args = ["--cfg", "docsrs"]

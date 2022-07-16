@@ -34,6 +34,7 @@ pub use async_trait::async_trait;
 
 /// bridge `Eventbus` from an external source
 #[cfg(feature = "bridge")]
+#[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
 pub mod bridge;
 #[cfg(feature = "async")]
 mod impl_async;
@@ -43,8 +44,10 @@ mod impl_sync;
 mod tests;
 
 #[cfg(feature = "async")]
+#[cfg_attr(docsrs, doc(cfg(feature = "async")))]
 pub use impl_async::Listener;
 #[cfg(feature = "sync")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
 pub use impl_sync::Listener;
 
 #[cfg(feature = "sync")]

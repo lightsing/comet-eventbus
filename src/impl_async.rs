@@ -9,6 +9,7 @@ use futures::future;
 ///
 /// Note: the struct which implements `Listener` need to be `Send` and `Sync`
 #[async_trait]
+#[cfg_attr(docsrs, doc(cfg(feature = "async")))]
 pub trait Listener<T>: Send + Sync + 'static {
     /// handler callback to process event
     async fn handle(&self, _: &Event<T>);
@@ -16,6 +17,7 @@ pub trait Listener<T>: Send + Sync + 'static {
 
 impl Eventbus {
     /// create a `Topic` using a topic key
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     pub async fn create_topic<T: 'static, K: Into<TopicKey>>(&self, topic_key: K) -> Topic<T> {
         let topic_key = topic_key.into();
         let listeners = self
@@ -31,6 +33,7 @@ impl Eventbus {
     }
 
     /// register a listener to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     pub async fn register<T: 'static, K: Into<TopicKey>, L: Listener<T>>(
         &self,
         topic_key: K,
@@ -47,6 +50,7 @@ impl Eventbus {
     }
 
     /// unregister an event listener
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     pub async fn unregister<T: 'static>(&self, event_listener: EventListener<T>) {
         self.inner
             .topic_handlers
@@ -55,6 +59,7 @@ impl Eventbus {
     }
 
     /// post an event to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     pub async fn post<T: Send + Sync + 'static>(&self, event: &Event<T>) {
         trace!("recv post [{:?}]", event.topic);
         self.inner.topic_handlers.notify(event).await;
@@ -63,6 +68,7 @@ impl Eventbus {
 
 impl<T: 'static> EventListener<T> {
     /// shorthand for unregister listener from eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     pub async fn unregister(self) {
         self.bus.clone().unregister(self).await
     }
@@ -114,6 +120,7 @@ impl TopicHandlers {
 
 impl<T: Send + Sync + 'static> Topic<T> {
     /// shorthand for post event to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     pub async fn post(&self, event: &Event<T>) {
         self.bus.post(event).await;
     }

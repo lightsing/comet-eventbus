@@ -19,6 +19,7 @@ mod proto {
 
 /// A bridge `Topic`
 #[derive(Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
 pub struct BridgedTopic<T> {
     inner: Topic<T>,
     bus: EventbusBridge,
@@ -26,6 +27,7 @@ pub struct BridgedTopic<T> {
 
 /// An serialized message
 #[derive(Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
 pub struct SerializedMessage {
     inner: Vec<u8>,
 }
@@ -35,12 +37,14 @@ pub struct SerializedMessage {
 /// Note: The subscribed topic **MUST** be able to deserialize as type `T`, it **panics**.
 /// It's your responsibility to ensure the type is correct.
 #[allow(missing_debug_implementations)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
 pub struct BridgeListener<T> {
     inner: Box<dyn Listener<T>>,
 }
 
 /// A bridge to connect two seperated `Eventbus`
 #[derive(Debug, Clone)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
 pub struct EventbusBridge {
     bus: Eventbus,
     /// endpoint -> client
@@ -49,6 +53,7 @@ pub struct EventbusBridge {
 
 /// An `EventListener` wrapper for `Listener`
 #[derive(Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
 pub struct BridgedEventListener<T> {
     inner: EventListener<SerializedMessage>,
     bus: EventbusBridge,

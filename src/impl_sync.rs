@@ -8,6 +8,7 @@ use rayon::prelude::*;
 /// Event listener
 ///
 /// Note: the struct which implements `Listener` need to be `Send` and `Sync`
+#[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
 pub trait Listener<T>: Send + Sync + 'static {
     /// handler callback to process event
     fn handle(&self, _: &Event<T>);
@@ -15,6 +16,7 @@ pub trait Listener<T>: Send + Sync + 'static {
 
 impl Eventbus {
     /// create a `Topic` using a topic key
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
     pub fn create_topic<T: 'static, K: Into<TopicKey>>(&self, topic_key: K) -> Topic<T> {
         let topic_key = topic_key.into();
         let listeners = self.inner.topic_handlers.get_listener(topic_key.clone());
@@ -26,6 +28,7 @@ impl Eventbus {
     }
 
     /// register a listener to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
     pub fn register<T: 'static, K: Into<TopicKey>, L: Listener<T>>(
         &self,
         topic_key: K,
@@ -41,6 +44,7 @@ impl Eventbus {
     }
 
     /// unregister an event listener
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
     pub fn unregister<T: 'static>(&self, event_listener: EventListener<T>) {
         self.inner
             .topic_handlers
@@ -48,6 +52,7 @@ impl Eventbus {
     }
 
     /// post an event to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
     pub fn post<T: Sync + 'static>(&self, event: &Event<T>) {
         self.inner.topic_handlers.notify(event);
     }
@@ -55,6 +60,7 @@ impl Eventbus {
 
 impl<T: 'static> EventListener<T> {
     /// shorthand for unregister listener from eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
     pub fn unregister(self) {
         self.bus.clone().unregister(self)
     }
@@ -113,6 +119,7 @@ impl TopicHandlers {
 
 impl<T: Sync + 'static> Topic<T> {
     /// shorthand for post event to eventbus
+    #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
     pub fn post(&self, event: &Event<T>) {
         self.bus.post(event);
     }
