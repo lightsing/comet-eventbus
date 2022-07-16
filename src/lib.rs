@@ -152,7 +152,6 @@ impl<T> DerefMut for Event<T> {
     }
 }
 
-
 impl<T> Topic<T> {
     /// get the key of a topic
     pub fn get_key(&self) -> &TopicKey {

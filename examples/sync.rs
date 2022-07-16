@@ -1,7 +1,7 @@
-/// cargo run --example sync --no-default-features --features sync
-use std::ops::Deref;
 use comet_eventbus::*;
 use log::info;
+/// cargo run --example sync --no-default-features --features sync
+use std::ops::Deref;
 
 struct Handler;
 
@@ -49,7 +49,6 @@ fn main() {
     let event_b = Event::new(topic.clone(), MessageB { id: 1 });
     // can also post via eventbus
     eventbus.post(&event_b);
-
 
     // unregister sample
     // this should not produce any output since we already unregister listener
