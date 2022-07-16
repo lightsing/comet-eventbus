@@ -1,6 +1,5 @@
 use comet_eventbus::*;
 use log::info;
-/// cargo run --example local_async --no-default-features --features async
 use std::ops::Deref;
 
 struct Handler;
