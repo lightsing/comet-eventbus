@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["comet_eventbus"] = [{"text":"impl&lt;T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.62.0/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a> for <a class=\"struct\" href=\"comet_eventbus/struct.Event.html\" title=\"struct comet_eventbus::Event\">Event</a>&lt;T&gt;","synthetic":false,"types":["comet_eventbus::Event"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
