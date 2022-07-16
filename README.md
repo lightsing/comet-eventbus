@@ -1,4 +1,4 @@
-# comet-eventbus
+<img src=".github/comet-eventbus.svg" alt="comet-eventbus" />
 
 [![License](https://img.shields.io/badge/license-MIT_OR_Apache--2.0-blue.svg)](
 https://github.com/lightsing/comet-eventbus#license)
@@ -11,7 +11,7 @@ Also provide grpc eventbus bridge for asynchronous implementation.
 
 ### Notice: This crate is under highly active development. I won't publish it on crates.io, before the api becomes stable.
 
-## Usage
+## Get Started
 
 ### Async Usage
 Add this to your `Cargo.toml`:
