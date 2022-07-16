@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use std::str::Utf8Error;
 use std::sync::Arc;
 
@@ -42,9 +43,9 @@ mod impl_sync;
 mod tests;
 
 #[cfg(feature = "async")]
-use impl_async::Listener;
+pub use impl_async::Listener;
 #[cfg(feature = "sync")]
-use impl_sync::Listener;
+pub use impl_sync::Listener;
 
 #[cfg(feature = "sync")]
 use parking_lot::Mutex;
@@ -130,7 +131,27 @@ impl<T> Event<T> {
             message,
         }
     }
+
+    /// into inner message
+    pub fn into_inner(self) -> T {
+        self.message
+    }
 }
+
+impl<T> Deref for Event<T> {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        &self.message
+    }
+}
+
+impl<T> DerefMut for Event<T> {
+    fn deref_mut(&mut self) -> &mut T {
+        &mut self.message
+    }
+}
+
 
 impl<T> Topic<T> {
     /// get the key of a topic
@@ -203,7 +224,7 @@ impl<T: Debug> Debug for Event<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(format!("Event<{}>", std::any::type_name::<T>()).as_str())
             .field("topic", &self.topic)
-            .field("message", &self.message)
+            .field("message", &&self.message)
             .finish()
     }
 }
