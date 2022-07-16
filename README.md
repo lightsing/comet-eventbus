@@ -9,7 +9,7 @@ A strong typed sync and asynchronous eventbus implementation.
 
 Also provide grpc eventbus bridge for asynchronous implementation.
 
-### Notice: This crate is under highly active development. I won't publish it on crates.io, before the api becomes stable.
+### Notice: This crate is under highly active development. I won't recommend you to use before the api becomes stable.
 
 ## Get Started
 
