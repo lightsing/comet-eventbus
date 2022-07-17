@@ -42,6 +42,7 @@
     future_incompatible,
     rust_2021_compatibility
 )]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[macro_use]
 extern crate log;
