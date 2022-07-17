@@ -249,7 +249,9 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Event</span>, <span class="ident">EventListener</span>, <span class="ident">Eventbus</span>, <span class="ident">Listener</span>, <span class="ident">Topic</span>, <span class="ident">TopicKey</span>};
+<span id="247">247</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::topic::Topic</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Event</span>, <span class="ident">EventListener</span>, <span class="ident">Eventbus</span>, <span class="ident">Listener</span>, <span class="ident">TopicKey</span>};
 <span class="kw">use</span> <span class="ident">proto::bridger_server</span>::{<span class="ident">Bridger</span>, <span class="ident">BridgerServer</span>};
 <span class="kw">use</span> <span class="ident">proto::PostReq</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::DeserializeOwned</span>, <span class="ident">Serialize</span>};
@@ -370,7 +372,7 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="ident">SerializedMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PostReq</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">event</span>: <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">SerializedMessage</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">PostReq</span> {
-            <span class="ident">topic</span>: <span class="ident">event</span>.<span class="ident">topic</span>.<span class="number">0</span>,
+            <span class="ident">topic</span>: <span class="ident">event</span>.<span class="ident">topic</span>.<span class="ident">as_ref</span>().<span class="ident">to_vec</span>(),
             <span class="ident">message</span>: <span class="ident">event</span>.<span class="ident">message</span>.<span class="ident">inner</span>,
         }
     }
