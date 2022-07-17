@@ -1,4 +1,5 @@
-use crate::{Event, EventListener, Eventbus, Listener, Topic, TopicKey};
+use crate::topic::Topic;
+use crate::{Event, EventListener, Eventbus, Listener, TopicKey};
 use proto::bridger_server::{Bridger, BridgerServer};
 use proto::PostReq;
 use serde::{de::DeserializeOwned, Serialize};
@@ -119,7 +120,7 @@ impl From<PostReq> for Event<SerializedMessage> {
 impl From<Event<SerializedMessage>> for PostReq {
     fn from(event: Event<SerializedMessage>) -> Self {
         PostReq {
-            topic: event.topic.0,
+            topic: event.topic.as_ref().to_vec(),
             message: event.message.inner,
         }
     }

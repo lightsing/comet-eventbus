@@ -20,14 +20,14 @@ Also provide grpc eventbus bridge for asynchronous implementation.
 Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
-comet-eventbus = "0.1.0-pre-alpha.2"
+comet-eventbus = "0.1.0-pre-alpha.3"
 ```
 
 ### Sync Usage
 Add this to your `Cargo.toml`:
 ```toml
 [dependencies.comet-eventbus]
-version = "0.1.0-pre-alpha.2"
+version = "0.1.0-pre-alpha.3"
 features = ["sync", "sync_parallel"]
 default-features = false
 ```
