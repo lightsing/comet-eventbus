@@ -1,7 +1,9 @@
 use std::borrow::Cow;
 use std::fmt::{Debug, Display, Formatter};
+use std::hash::Hash;
 use std::ops::Deref;
 use std::str::Utf8Error;
+use rand::{RngCore, thread_rng};
 
 /// Wrapper of bytes represent a `Topic`
 ///
@@ -25,6 +27,14 @@ impl TopicKey {
     /// try parse topic key as an utf-8 str
     pub fn try_as_str(&self) -> Result<&str, Utf8Error> {
         std::str::from_utf8(self.as_ref())
+    }
+
+    /// Generate a random topic
+    pub fn random(len: usize) -> Self {
+        let mut buf = Vec::new();
+        buf.resize(len, 0);
+        thread_rng().fill_bytes(&mut buf);
+        Self::from(buf)
     }
 }
 

@@ -1,0 +1,11 @@
+[package]
+name = "ce-macros"
+authors = ["Akase Cho <light.tsing@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]

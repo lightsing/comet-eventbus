@@ -1,4 +1,4 @@
 /target
 /Cargo.lock
-/src/bridge/bridge.rs
-/src/bridge/google.protobuf.rs
+/comet-eventbus/src/bridge/bridge.rs
+/comet-eventbus/src/bridge/google.protobuf.rs

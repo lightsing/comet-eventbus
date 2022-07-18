@@ -1,3 +1,4 @@
+use std::time::Duration;
 use crate::bridge::EventbusBridge;
 use crate::*;
 use serde::{Deserialize, Serialize};
@@ -49,6 +50,7 @@ async fn test_bridge() {
     let server_b = bridged_b.clone().listen("127.0.0.1:50002".parse().unwrap());
     tokio::spawn(server_b);
 
+    tokio::time::sleep(Duration::from_secs(5)).await;
     bridged_a.connect("http://127.0.0.1:50002").await.unwrap();
     bridged_b.connect("http://127.0.0.1:50001").await.unwrap();
 
@@ -59,19 +61,19 @@ async fn test_bridge() {
 
     let topic_a = bridged_a.create_topic(topic.clone()).await;
     let event = Event::new(topic_a.get_key().clone(), Message { id: 1 });
-    topic_a.post(&event).await;
+    topic_a.post(&event).await.unwrap();
 
     let topic_b = bridged_b.create_topic(topic.clone()).await;
     let event = Event::new(topic_b.get_key().clone(), Message { id: 2 });
-    topic_b.post(&event).await;
+    topic_b.post(&event).await.unwrap();
 
     handler_a.unregister().await;
     let topic_b = bridged_b.create_topic(topic.clone()).await;
     let event = Event::new(topic_b.get_key().clone(), Message { id: 2 });
-    topic_b.post(&event).await;
+    topic_b.post(&event).await.unwrap();
 
     handler_b.unregister().await;
     let topic_a = bridged_a.create_topic(topic.clone()).await;
     let event = Event::new(topic_a.get_key().clone(), Message { id: 1 });
-    topic_a.post(&event).await;
+    topic_a.post(&event).await.unwrap();
 }
