@@ -1,2 +1,4 @@
 /target
 /Cargo.lock
+/src/bridge/bridge.rs
+/src/bridge/google.protobuf.rs

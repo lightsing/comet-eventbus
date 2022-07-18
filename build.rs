@@ -1,6 +1,9 @@
 #[cfg(feature = "bridge")]
 fn main() {
-    tonic_build::compile_protos("proto/bridge.proto").unwrap();
+    tonic_build::configure()
+        .out_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/src/bridge"))
+        .compile(&["proto/bridge.proto"], &["proto/"])
+        .unwrap();
 }
 
 #[cfg(not(feature = "bridge"))]

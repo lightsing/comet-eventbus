@@ -1,7 +1,7 @@
 use crate::topic::Topic;
 use crate::{Event, EventListener, Eventbus, Listener, TopicKey};
-use proto::bridger_server::{Bridger, BridgerServer};
-use proto::PostReq;
+use bridge::bridger_server::{Bridger, BridgerServer};
+use bridge::PostReq;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -11,12 +11,11 @@ use tokio::sync::Mutex;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
-type BridgerClient = proto::bridger_client::BridgerClient<tonic::transport::Channel>;
-
-#[allow(unreachable_pub)]
-mod proto {
-    tonic::include_proto!("bridge");
-}
+#[allow(unreachable_pub, clippy::module_inception)]
+mod bridge;
+pub use bridge::bridger_client::BridgerClient as BridgerClientInner;
+/// Inner Grpc Client of the bridge
+pub type BridgerClient = BridgerClientInner<tonic::transport::Channel>;
 
 /// A bridge `Topic`
 #[derive(Debug)]
@@ -70,8 +69,8 @@ impl<T> BridgedTopic<T> {
 
 impl<T: Serialize + Send + Sync + 'static> BridgedTopic<T> {
     /// shorthand for post event to eventbus
-    pub async fn post(&self, event: &Event<T>) {
-        self.bus.post(event).await;
+    pub async fn post(&self, event: &Event<T>) -> Result<(), Vec<BridgerClient>> {
+        self.bus.post(event).await
     }
 }
 
@@ -231,17 +230,35 @@ impl EventbusBridge {
         self.bus.unregister(event_listener.inner).await;
     }
 
-    /// post an event to eventbus
-    pub async fn post<T: Serialize + Send + Sync + 'static>(&self, event: &Event<T>) {
+    /// post an event to eventbus, returning a Result
+    ///
+    /// # Errors
+    /// This method failed if any of send task to the connected eventbus failed.
+    /// A `Vec` of `BridgerClient` is returned for retrying.
+    pub async fn post<T: Serialize + Send + Sync + 'static>(
+        &self,
+        event: &Event<T>,
+    ) -> Result<(), Vec<BridgerClient>> {
         let serialized: PostReq = event.serialized().unwrap().into();
         let mut guard = self.clients.lock().await;
-        tokio::join!(
-            self.bus.post(event),
-            futures::future::join_all(
-                guard
-                    .iter_mut()
-                    .map(|(_, client)| client.post(serialized.clone()))
-            )
-        );
+        self.bus.post(event).await;
+
+        let failed_clients: Vec<BridgerClient> = futures::future::join_all(
+            guard
+                .iter_mut()
+                .map(|(_, client)| client.post(serialized.clone())),
+        )
+        .await
+        .iter()
+        .zip(guard.iter())
+        .filter(|(result, _)| result.is_err())
+        .map(|(_, (_, client))| client.clone())
+        .collect();
+
+        if failed_clients.is_empty() {
+            Ok(())
+        } else {
+            Err(failed_clients)
+        }
     }
 }

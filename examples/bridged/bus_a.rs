@@ -26,6 +26,6 @@ pub async fn main() {
     let handler_a = bridged_a.register(topic.clone(), HandlerA).await;
     let topic_a = bridged_a.create_topic(topic.clone()).await;
     let event = Event::new(topic_a.get_key().clone(), Message { id: 1 });
-    topic_a.post(&event).await;
+    topic_a.post(&event).await.unwrap();
     handler_a.unregister().await;
 }
