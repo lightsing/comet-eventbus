@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["comet_eventbus"];
+window.ALL_CRATES = ["ce_macros","comet_eventbus"];
