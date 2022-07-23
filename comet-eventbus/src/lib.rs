@@ -113,6 +113,16 @@ struct TopicHandlers {
     inner: Mutex<anymap::Map<dyn anymap::any::Any + Send + Sync>>,
 }
 
+/// Error of Listener exceptions
+#[derive(Debug, thiserror::Error)]
+pub enum ListenerError {
+    /// error of bridge feature
+    #[cfg(feature = "bridge")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "bridge")))]
+    #[error(transparent)]
+    BridgeError(#[from] bridge::BridgeError),
+}
+
 impl Eventbus {
     /// create an new eventbus
     pub fn new() -> Self {

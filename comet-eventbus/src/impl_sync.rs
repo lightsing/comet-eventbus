@@ -1,5 +1,5 @@
 use crate::{
-    Event, EventListener, EventListeners, Eventbus, Topic, TopicHandlers, TopicHandlersMap,
+    Event, EventListener, EventListeners, Eventbus, ListenerError, Topic, TopicHandlers, TopicHandlersMap,
     TopicKey,
 };
 #[cfg(feature = "sync_parallel")]
@@ -11,7 +11,7 @@ use rayon::prelude::*;
 #[cfg_attr(docsrs, doc(cfg(feature = "sync")))]
 pub trait Listener<T>: Send + Sync + 'static {
     /// handler callback to process event
-    fn handle(&self, _: &Event<T>);
+    fn handle(&self, _: &Event<T>) -> Result<(), ListenerError>;
 }
 
 impl Eventbus {
@@ -106,13 +106,17 @@ impl TopicHandlers {
         #[cfg(not(feature = "sync_parallel"))]
         guard.iter().for_each(|(_, listener)| {
             trace!("notify listener for event [{:?}]", event.topic);
-            listener.handle(event)
+            if let Err(e) = listener.handle(event) {
+                error!("listener of topic [{}] failed to process event: {:?}", event.topic, e)
+            }
         });
 
         #[cfg(feature = "sync_parallel")]
         guard.par_iter().for_each(|(_, listener)| {
             trace!("notify listener for event [{:?}]", event.topic);
-            listener.handle(event)
+            if let Err(e) = listener.handle(event) {
+                error!("listener of topic [{}] failed to process event: {:?}", event.topic, e)
+            }
         });
     }
 }

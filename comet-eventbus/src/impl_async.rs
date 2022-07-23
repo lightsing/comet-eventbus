@@ -1,7 +1,4 @@
-use crate::{
-    Event, EventListener, EventListeners, Eventbus, Topic, TopicHandlers, TopicHandlersMap,
-    TopicKey,
-};
+use crate::{Event, EventListener, EventListeners, Eventbus, Topic, TopicHandlers, TopicHandlersMap, TopicKey, ListenerError};
 use async_trait::async_trait;
 use futures::future;
 
@@ -12,7 +9,7 @@ use futures::future;
 #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
 pub trait Listener<T>: Send + Sync + 'static {
     /// handler callback to process event
-    async fn handle(&self, _: &Event<T>);
+    async fn handle(&self, _: &Event<T>) -> Result<(), ListenerError>;
 }
 
 impl Eventbus {
@@ -112,7 +109,12 @@ impl TopicHandlers {
         let guard = listeners.lock().await;
         future::join_all(guard.iter().map(|(_, listener)| {
             trace!("notify listener for event [{:?}]", event.topic);
-            listener.handle(event)
+            async {
+                let result = listener.handle(event).await;
+                if let Err(e) = result {
+                    error!("listener of topic [{}] failed to process event: {:?}", event.topic, e)
+                }
+            }
         }))
         .await;
     }
