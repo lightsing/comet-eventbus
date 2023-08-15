@@ -136,7 +136,7 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
     let listener = quote! {
         #async_trait
         impl ::comet_eventbus::Listener<#request_name> for #service_name {
-            #async_token fn handle(&self, event: &::comet_eventbus::Event<#request_name>) {
+            #async_token fn handle(&self, event: &::comet_eventbus::Event<#request_name>) -> Result<(), ::comet_eventbus::ListenerError> {
                 #func
                 let request = event.to_owned().into_inner();
                 #calling
@@ -144,6 +144,7 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     request.reply_topic,
                     #response_name { inner }
                 ))#await_token;
+                Ok(())
             }
         }
     };
@@ -183,13 +184,14 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
                 #async_trait
                 impl ::comet_eventbus::Listener<#response_name> for OneTimeListener {
-                    #async_token fn handle(&self, event: &::comet_eventbus::Event<#response_name>) {
+                    #async_token fn handle(&self, event: &::comet_eventbus::Event<#response_name>) -> Result<(), ::comet_eventbus::ListenerError> {
                         let response = event.to_owned().into_inner();
                         self.tx
                             .lock()
                             .unwrap()
                             .send(response.inner)
                             .unwrap();
+                        Ok(())
                     }
                 }
 
