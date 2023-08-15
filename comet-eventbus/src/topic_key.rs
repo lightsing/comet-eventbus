@@ -1,9 +1,9 @@
+use rand::{thread_rng, RngCore};
 use std::borrow::Cow;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
 use std::str::Utf8Error;
-use rand::{RngCore, thread_rng};
 
 /// Wrapper of bytes represent a `Topic`
 ///

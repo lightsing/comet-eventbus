@@ -7,7 +7,7 @@ struct HandlerA;
 
 #[comet_eventbus::async_trait]
 impl Listener<Message> for HandlerA {
-    async fn handle(&self, event: &Event<Message>) -> Result<(), ListenerError>  {
+    async fn handle(&self, event: &Event<Message>) -> Result<(), ListenerError> {
         println!("A: {:?}", event);
         Ok(())
     }

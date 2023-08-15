@@ -1,5 +1,5 @@
 use crate::topic::Topic;
-use crate::{Event, EventListener, Eventbus, Listener, TopicKey, ListenerError};
+use crate::{Event, EventListener, Eventbus, Listener, ListenerError, TopicKey};
 use bridge::bridger_server::{Bridger, BridgerServer};
 use bridge::PostReq;
 use serde::{de::DeserializeOwned, Serialize};
@@ -94,8 +94,7 @@ impl SerializedMessage {
 impl<T: Serialize> Event<T> {
     /// serialize a message
     pub fn serialized(&self) -> Result<Event<SerializedMessage>, BridgeError> {
-        let serialized = bincode::serialize(&self.message)
-            .map_err(BridgeError::Serialization)?;
+        let serialized = bincode::serialize(&self.message).map_err(BridgeError::Serialization)?;
         Ok(Event {
             topic: self.topic.clone(),
             message: SerializedMessage::new(serialized),
@@ -106,8 +105,8 @@ impl<T: Serialize> Event<T> {
 impl Event<SerializedMessage> {
     /// downcast a Serialized Event to a concreate type.
     pub fn downcast<T: Sized + DeserializeOwned + 'static>(&self) -> Result<Event<T>, BridgeError> {
-        let message = bincode::deserialize::<T>(&self.message.inner)
-            .map_err(BridgeError::Deserialization)?;
+        let message =
+            bincode::deserialize::<T>(&self.message.inner).map_err(BridgeError::Deserialization)?;
         Ok(Event {
             topic: self.topic.clone(),
             message,

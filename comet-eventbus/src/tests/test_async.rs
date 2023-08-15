@@ -1,7 +1,7 @@
-use std::time::Duration;
 use crate::bridge::EventbusBridge;
 use crate::*;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 struct HandlerA;
 struct HandlerB;

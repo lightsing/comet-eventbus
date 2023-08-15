@@ -1,4 +1,7 @@
-use crate::{Event, EventListener, EventListeners, Eventbus, Topic, TopicHandlers, TopicHandlersMap, TopicKey, ListenerError};
+use crate::{
+    Event, EventListener, EventListeners, Eventbus, ListenerError, Topic, TopicHandlers,
+    TopicHandlersMap, TopicKey,
+};
 use async_trait::async_trait;
 use futures::future;
 
@@ -112,7 +115,10 @@ impl TopicHandlers {
             async {
                 let result = listener.handle(event).await;
                 if let Err(e) = result {
-                    error!("listener of topic [{}] failed to process event: {:?}", event.topic, e)
+                    error!(
+                        "listener of topic [{}] failed to process event: {:?}",
+                        event.topic, e
+                    )
                 }
             }
         }))

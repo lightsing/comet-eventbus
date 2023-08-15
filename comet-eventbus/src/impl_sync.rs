@@ -1,6 +1,6 @@
 use crate::{
-    Event, EventListener, EventListeners, Eventbus, ListenerError, Topic, TopicHandlers, TopicHandlersMap,
-    TopicKey,
+    Event, EventListener, EventListeners, Eventbus, ListenerError, Topic, TopicHandlers,
+    TopicHandlersMap, TopicKey,
 };
 #[cfg(feature = "sync_parallel")]
 use rayon::prelude::*;
@@ -107,7 +107,10 @@ impl TopicHandlers {
         guard.iter().for_each(|(_, listener)| {
             trace!("notify listener for event [{:?}]", event.topic);
             if let Err(e) = listener.handle(event) {
-                error!("listener of topic [{}] failed to process event: {:?}", event.topic, e)
+                error!(
+                    "listener of topic [{}] failed to process event: {:?}",
+                    event.topic, e
+                )
             }
         });
 
@@ -115,7 +118,10 @@ impl TopicHandlers {
         guard.par_iter().for_each(|(_, listener)| {
             trace!("notify listener for event [{:?}]", event.topic);
             if let Err(e) = listener.handle(event) {
-                error!("listener of topic [{}] failed to process event: {:?}", event.topic, e)
+                error!(
+                    "listener of topic [{}] failed to process event: {:?}",
+                    event.topic, e
+                )
             }
         });
     }
