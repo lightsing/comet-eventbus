@@ -134,7 +134,16 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{Event, EventListener, EventListeners, Eventbus, Topic, TopicHandlers, TopicHandlersMap, TopicKey, ListenerError};
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    Event, EventListener, EventListeners, Eventbus, ListenerError, Topic, TopicHandlers,
+    TopicHandlersMap, TopicKey,
+};
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>futures::future;
 
@@ -248,7 +257,10 @@
             <span class="kw">async </span>{
                 <span class="kw">let </span>result = listener.handle(event).<span class="kw">await</span>;
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = result {
-                    <span class="macro">error!</span>(<span class="string">&quot;listener of topic [{}] failed to process event: {:?}&quot;</span>, event.topic, e)
+                    <span class="macro">error!</span>(
+                        <span class="string">&quot;listener of topic [{}] failed to process event: {:?}&quot;</span>,
+                        event.topic, e
+                    )
                 }
             }
         }))

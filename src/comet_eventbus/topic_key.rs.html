@@ -93,12 +93,12 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+</pre></div><pre class="rust"><code><span class="kw">use </span>rand::{thread_rng, RngCore};
+<span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::fmt::{Debug, Display, Formatter};
 <span class="kw">use </span>std::hash::Hash;
 <span class="kw">use </span>std::ops::Deref;
 <span class="kw">use </span>std::str::Utf8Error;
-<span class="kw">use </span>rand::{RngCore, thread_rng};
 
 <span class="doccomment">/// Wrapper of bytes represent a `Topic`
 ///
