@@ -30,6 +30,6 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Run clippy for async
-        run: cargo --features async,bridge --no-default-features -- -D warnings
+        run: cargo clippy --features async,bridge --no-default-features -- -D warnings
       - name: Run clippy for sync
-        run: cargo --features sync,sync_parallel --no-default-features -- -D warnings
+        run: cargo clippy --features sync,sync_parallel --no-default-features -- -D warnings
