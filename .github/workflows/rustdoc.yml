@@ -18,6 +18,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, rust-src
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
 
       - name: Build Documentation
         run: cargo doc --features async,bridge --all --no-deps
