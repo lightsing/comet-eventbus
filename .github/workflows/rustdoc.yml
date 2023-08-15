@@ -20,6 +20,8 @@ jobs:
           components: rustfmt, rust-src
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Documentation
         run: cargo doc --features async,bridge --all --no-deps

@@ -61,9 +61,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: cargo check async
         run: cargo check --features async,bridge --no-default-features
       - name: cargo check sync
         run: cargo check --features sync,sync_parallel --no-default-features
       - run: rustup component add rustfmt
-      - run: cargo fmt--all -- --check
+      - run: cargo fmt --all -- --check
