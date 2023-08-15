@@ -22,9 +22,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          override: false
+      - uses: dtolnay/rust-toolchain@stable
       - name: Cargo cache
         uses: actions/cache@v3
         with:
@@ -36,15 +34,9 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Run async tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --verbose --release --package comet-eventbus --lib --features async,bridge --no-default-features
+        run: cargo test --verbose --release --package comet-eventbus --lib --features async,bridge --no-default-features
       - name: Run sync tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --verbose --release --package comet-eventbus --lib --features sync,sync_parallel --no-default-features
+        run: cargo test --verbose --release --package comet-eventbus --lib --features sync,sync_parallel --no-default-features
 
   fmt:
     if: github.event.pull_request.draft == false
@@ -54,9 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          override: false
+      - uses: dtolnay/rust-toolchain@stable
       - name: Cargo cache
         uses: actions/cache@v3
         with:
@@ -68,17 +58,8 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: cargo check async
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --features async,bridge --no-default-features
+        run: cargo check --features async,bridge --no-default-features
       - name: cargo check sync
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --features sync,sync_parallel --no-default-features
+        run: cargo check --features sync,sync_parallel --no-default-features
       - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - run: cargo fmt--all -- --check
