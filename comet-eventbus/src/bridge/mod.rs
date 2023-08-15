@@ -1,5 +1,5 @@
 use crate::topic::Topic;
-use crate::{Event, EventListener, Eventbus, Listener, TopicKey};
+use crate::{Event, EventListener, Eventbus, Listener, TopicKey, ListenerError};
 use bridge::bridger_server::{Bridger, BridgerServer};
 use bridge::PostReq;
 use serde::{de::DeserializeOwned, Serialize};
@@ -60,6 +60,17 @@ pub struct BridgedEventListener<T> {
     _handler: PhantomData<T>,
 }
 
+/// Bridge Error
+#[derive(Debug, thiserror::Error)]
+pub enum BridgeError {
+    /// failed to serialize a request
+    #[error("serialization failed: {0}")]
+    Serialization(bincode::Error),
+    /// failed to deserialize a request to a concrete type
+    #[error("deserialization failed: {0}")]
+    Deserialization(bincode::Error),
+}
+
 impl<T> BridgedTopic<T> {
     /// get topic key
     pub fn get_key(&self) -> &TopicKey {
@@ -82,9 +93,10 @@ impl SerializedMessage {
 
 impl<T: Serialize> Event<T> {
     /// serialize a message
-    pub fn serialized(&self) -> Option<Event<SerializedMessage>> {
-        let serialized = bincode::serialize(&self.message).ok()?;
-        Some(Event {
+    pub fn serialized(&self) -> Result<Event<SerializedMessage>, BridgeError> {
+        let serialized = bincode::serialize(&self.message)
+            .map_err(BridgeError::Serialization)?;
+        Ok(Event {
             topic: self.topic.clone(),
             message: SerializedMessage::new(serialized),
         })
@@ -93,17 +105,13 @@ impl<T: Serialize> Event<T> {
 
 impl Event<SerializedMessage> {
     /// downcast a Serialized Event to a concreate type.
-    pub fn downcast<T: Sized + DeserializeOwned + 'static>(&self) -> Option<Event<T>> {
-        match bincode::deserialize::<T>(&self.message.inner) {
-            Ok(message) => Some(Event {
-                topic: self.topic.clone(),
-                message,
-            }),
-            Err(e) => {
-                error!("deserialize event message failed: {}", e);
-                None
-            }
-        }
+    pub fn downcast<T: Sized + DeserializeOwned + 'static>(&self) -> Result<Event<T>, BridgeError> {
+        let message = bincode::deserialize::<T>(&self.message.inner)
+            .map_err(BridgeError::Deserialization)?;
+        Ok(Event {
+            topic: self.topic.clone(),
+            message,
+        })
     }
 }
 
@@ -137,10 +145,10 @@ impl<T> BridgeListener<T> {
 impl<T: Sized + DeserializeOwned + Send + Sync + 'static> Listener<SerializedMessage>
     for BridgeListener<T>
 {
-    async fn handle(&self, event: &Event<SerializedMessage>) {
+    async fn handle(&self, event: &Event<SerializedMessage>) -> Result<(), ListenerError> {
         trace!("handle serialized event of [{:?}]", event.topic);
-        let event = event.downcast::<T>().unwrap();
-        self.inner.handle(&event).await;
+        let event = event.downcast::<T>()?;
+        self.inner.handle(&event).await
     }
 }
 
@@ -231,6 +239,9 @@ impl EventbusBridge {
     }
 
     /// post an event to eventbus, returning a Result
+    ///
+    /// # Panics
+    /// This method panics if `T` cannot be successfully serialized.
     ///
     /// # Errors
     /// This method failed if any of send task to the connected eventbus failed.

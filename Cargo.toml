@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "ce-macros",
-    "comet-eventbus"
+    "comet-eventbus",
+    "macro-test"
 ]

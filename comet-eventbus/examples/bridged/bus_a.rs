@@ -7,8 +7,9 @@ struct HandlerA;
 
 #[comet_eventbus::async_trait]
 impl Listener<Message> for HandlerA {
-    async fn handle(&self, event: &Event<Message>) {
-        println!("A: {:?}", event)
+    async fn handle(&self, event: &Event<Message>) -> Result<(), ListenerError>  {
+        println!("A: {:?}", event);
+        Ok(())
     }
 }
 
@@ -16,8 +17,8 @@ pub async fn main() {
     let eventbus_a = Eventbus::new();
     let bridged_a = EventbusBridge::new(eventbus_a);
 
-    let server_a = bridged_a.clone().listen("127.0.0.1:50001".parse().unwrap());
-    tokio::spawn(server_a);
+    tokio::spawn(bridged_a.clone().listen("127.0.0.1:50001".parse().unwrap()));
+    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
     bridged_a.connect("http://127.0.0.1:50002").await.unwrap();
 

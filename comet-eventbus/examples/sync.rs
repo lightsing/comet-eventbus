@@ -11,19 +11,21 @@ struct MessageA {
 
 #[derive(Debug)]
 struct MessageB {
-    id: u8,
+    _id: u8,
 }
 
 impl Listener<MessageA> for Handler {
-    fn handle(&self, event: &Event<MessageA>) {
+    fn handle(&self, event: &Event<MessageA>) -> Result<(), ListenerError> {
         info!("message a event: {:?}", event);
         assert_ne!(event.deref().id, 2);
+        Ok(())
     }
 }
 
 impl Listener<MessageB> for Handler {
-    fn handle(&self, event: &Event<MessageB>) {
+    fn handle(&self, event: &Event<MessageB>) -> Result<(), ListenerError> {
         info!("message b event: {:?}", event);
+        Ok(())
     }
 }
 
@@ -36,7 +38,7 @@ fn main() {
     // register listener for type `MessageA`
     let handler_a = eventbus.register::<MessageA, _, _>(topic.clone(), Handler);
     // register listener for type `MessageB`
-    let handler_b = eventbus.register::<MessageB, _, _>(topic.clone(), Handler);
+    let _handler_b = eventbus.register::<MessageB, _, _>(topic.clone(), Handler);
 
     // post sample
     // get `MessageA` `Topic`
@@ -45,7 +47,7 @@ fn main() {
     // shorthand post via `Topic`
     topic_message_a.post(&event_a);
     // create `MessageB` `Event`
-    let event_b = Event::new(topic.clone(), MessageB { id: 1 });
+    let event_b = Event::new(topic.clone(), MessageB { _id: 1 });
     // can also post via eventbus
     eventbus.post(&event_b);
 

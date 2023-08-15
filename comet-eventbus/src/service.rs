@@ -3,6 +3,10 @@
 //! e.g. Create a Handler to accept request and post Response on the topic.
 
 
+trait Service {
+
+}
+
 /// expand to :
 /// ```
 /// #[derive(Clone)]
@@ -78,6 +82,13 @@
 /// }
 /// ```
 // #[service(MyService, "topic")]
+struct MyService {
+
+}
 fn my_service(arg0: u8, arg1: String, arg2: Vec<u8>) -> String {
     format!("{}, {}, {:?}", arg0, arg1, arg2)
+}
+
+impl MyService {
+
 }

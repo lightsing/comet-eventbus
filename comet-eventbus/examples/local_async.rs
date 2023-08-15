@@ -11,9 +11,10 @@ struct Message {
 
 #[comet_eventbus::async_trait]
 impl Listener<Message> for Handler {
-    async fn handle(&self, event: &Event<Message>) {
+    async fn handle(&self, event: &Event<Message>) -> Result<(), ListenerError> {
         info!("A: {:?}", event);
         assert_ne!(event.deref().id, 2);
+        Ok(())
     }
 }
 

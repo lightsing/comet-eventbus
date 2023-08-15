@@ -7,8 +7,9 @@ struct HandlerB;
 
 #[async_trait::async_trait]
 impl Listener<Message> for HandlerB {
-    async fn handle(&self, event: &Event<Message>) {
-        println!("B: {:?}", event)
+    async fn handle(&self, event: &Event<Message>) -> Result<(), ListenerError> {
+        println!("B: {:?}", event);
+        Ok(())
     }
 }
 
@@ -17,6 +18,7 @@ pub async fn main() {
     let bridged_b = EventbusBridge::new(eventbus_b);
 
     tokio::spawn(bridged_b.clone().listen("127.0.0.1:50002".parse().unwrap()));
+    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
     bridged_b.connect("http://127.0.0.1:50001").await.unwrap();
 
